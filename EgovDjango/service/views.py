@@ -50,10 +50,9 @@ class FormaView(views.APIView):
         s.headers['Sec-Fetch-Site'] = 'same-origin'
         s.headers['Content-Type'] = 'application/json'
         print(user_data.get('uin'))
-        res = s.options("https://egov.kz/services/P3.05/rest/app/get-signing-url", data=payload)
-        res = s.head("https://egov.kz/services/P3.05/rest/app/get-signing-url", data=payload)
+        res = s.post("https://egov.kz/services/P3.05/rest/app/get-signing-url", data=payload)
         print(res.status_code)
-        res = s.head('https://egov.kz/services/signing/rest/otp/generate?uin=040705550178')
+        res = s.post('https://egov.kz/services/signing/rest/otp/generate?uin=040705550178')
         print(res)
         return Response({"status": "True"}, status=200)
 
@@ -200,6 +199,6 @@ class FormaCodeView(views.APIView):
         # s.headers['Sec-Ch-Ua-Mobile'] = '?0'
         # s.headers['Sec-Ch-Ua-Platform'] = 'Windows'
         # s.headers['Sec-Ch-Ua-Platform'] = 'empty'
-        result_code = s.options(f"https://egov.kz/services/signing/rest/app/send-otp?code={code}", data=payload)
+        result_code = s.post(f"https://egov.kz/services/signing/rest/app/send-otp?code={code}", data=payload)
         print(result_code)
         return Response({"status": "True"}, status=200)
