@@ -48,19 +48,9 @@ class FormaView(views.APIView):
         s.headers['Sec-Fetch-Mode'] = 'cors'
         s.headers['Sec-Fetch-Site'] = 'same-origin'
         s.headers['Content-Type'] = 'application/json'
-        s.headers['x-requested-with'] = 'XMLHttpRequest'
         print(user_data.get('uin'))
-        # proxy_url = "http://localhost:5000"
-        # res = s.post("http://127.0.0.1:5000/https://egov.kz/services/P3.05/rest/app/get-signing-url", data=payload)
-        # print(res.status_code)
-        # print(res.text)
-        # s.headers["Target_URL"] = "https://egov.kz/services/P3.05/rest/app/get-signing-url"
-        # res = s.options(proxy_url, data=payload)
-        # print(res.text)
-        # print(res.status_code)
-        s.headers["Target_URL"] = "https://egov.kz/services/signing/rest/otp/generate?uin=040705550178"
-        # res = s.post(proxy_url)
-        print(res)
+        res = s.post("https://egov.kz/services/P3.05/rest/app/get-signing-url", data=payload)
+        print(res.status_code)
         return Response({"status": "True"}, status=200)
 
 
@@ -234,6 +224,7 @@ class PsychoNarcoView(views.APIView):
     def post(self, request):
         cookies = request.data.get('cookies')
         options = webdriver.FirefoxOptions()
+        options.add_argument("--headless")
         browser = webdriver.Firefox(options=options)
         browser.get("https://egov.kz/")
         for name, value in cookies.items():
@@ -247,15 +238,19 @@ class PsychoNarcoView(views.APIView):
         time.sleep(3)
         browser.find_element(By.XPATH, '//*[@id="search"]/div/div/div[1]/ul/li[1]/div/label').click()
         browser.find_element('xpath', '//*[@id="search"]/div/div/div[2]/div/button').click()
+        time.sleep(2)
         response = {
             "url": browser.current_url,
             "cookies": browser.get_cookies()
         }
+        browser.quit()
         return Response(response, 200)
+
 
 class PsychoNarcoCodeView(views.APIView):
     def post(self, request):
         url = request.data.get('url')
+        iin = request.data.get('iin')
         s = requests.Session()
         cookies = request.data.get('cookies')
         for cookie_dict in cookies:
@@ -267,8 +262,14 @@ class PsychoNarcoCodeView(views.APIView):
             )
         s.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36'
         s.headers['Host'] = 'egov.kz'
-        response = s.get(url)
-        print(response)
+        s.get(url)
+        parsed_url = urlparse(url)
+        query_parameters = parse_qs(parsed_url.query)
+        page_query_id = query_parameters.get("PageQueryID", [None])[0]
+        res = s.get(f"https://egov.kz/services/signing/rest/app/v4/verification-types?uin={iin}&PageQueryID={page_query_id}")
+        res = res.json()
+        request_number = res.get('backUrl')
+        print(request_number)
         s.headers['Accept'] = 'application/json, text/plain, */*'
         s.headers['Accept-Encoding'] = 'gzip, deflate'
         s.headers['Connection'] = 'keep-alive'
@@ -278,8 +279,31 @@ class PsychoNarcoCodeView(views.APIView):
         s.headers['Sec-Fetch-Mode'] = 'cors'
         s.headers['Sec-Fetch-Site'] = 'same-origin'
         res = s.post("https://egov.kz/services/signing/rest/otp/generate?uin=040705550178")
-        print(res)
         response = {
-
+            "url": request_number,
         }
-        return Response({"o":"k"}, status=200)
+        return Response(response, status=200)
+
+class PsychoNarcoSendCodeView(views.APIView):
+    def post(self, request):
+        url = request.data.get('url')
+        s = requests.Session()
+        cookies = request.data.get('cookies')
+        code = request.data.get('code')
+        for cookie_dict in cookies:
+            s.cookies.set(
+                name=cookie_dict['name'],
+                value=cookie_dict['value'],
+                domain=cookie_dict['domain'],
+                path=cookie_dict['path']
+            )
+        parsed_url = urlparse(url)
+        query_parameters = parse_qs(parsed_url.query)
+        request_number = query_parameters.get("request-number", [None])[0]
+        s.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36'
+        s.headers['Host'] = 'egov.kz'
+        print(request_number)
+        res = s.post(f"https://egov.kz/services/signing/rest/app/send-otp?code={code}")
+        print(res.status_code)
+        res = s.get(f"https://egov.kz/services/P7.04/rest/request-states/{request_number}")
+        return Response(res.text, 200)
