@@ -1,4 +1,5 @@
 import json
+import re
 import time
 from urllib.parse import urlparse, parse_qs
 
@@ -258,3 +259,30 @@ class PsychoNarcoCodeView(views.APIView):
             return Response(response, 200)
         else:
             return Response({"error": "not correct code"}, 400)
+
+class PsychoNarcoStatusView(views.APIView):
+    def post(self, request):
+        cookies = request.data.get('cookies')
+        s = requests.Session()
+        result_url = request.data.get('result_url')
+        request_number = result_url.split('=')[1]
+        for cookie_name, cookie_value in cookies.items():
+            s.cookies.set(cookie_name, cookie_value)
+        final_result_headers = {
+            "Accept": "application/json, text/plain, */*",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Accept-Language": "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7",
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "Host": "egov.kz",
+            "Referer": result_url,
+            "Sec-Ch-Ua": '"Google Chrome";v="117", "Not;A=Brand";v="8", "Chromium";v="117"',
+            "Sec-Ch-Ua-Mobile": "?0",
+            "Sec-Ch-Ua-Platform": '"Windows"',
+            "Sec-Fetch-Dest": "empty",
+            "Sec-Fetch-Mode": "cors",
+            "Sec-Fetch-Site": "same-origin",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
+        }
+        res = s.get(f"https://egov.kz/services/P7.04/rest/request-states/{request_number}", headers=final_result_headers)
+        return Response(res.text, 200)
