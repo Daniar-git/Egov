@@ -36,7 +36,6 @@ class LoginCode(views.APIView):
         s = requests.Session()
         for cookie_name, cookie_value in cookies.items():
             s.cookies.set(cookie_name, cookie_value)
-
         payload2 = {
             'url': '',
             'username': iin,

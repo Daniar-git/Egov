@@ -246,11 +246,13 @@ class PsychoNarcoCodeView(views.APIView):
             "Sec-Fetch-Site": "same-origin",
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
         }
+        request_number = result_url.split('=')[1]
         if res.status_code == 200:
             s.get(result_url, headers=result_headers)
-            res = s.get(result_url, headers=final_result_headers)
+            print(result_url)
+            res = s.get(f"https://egov.kz/services/P7.04/rest/request-states/{request_number}", headers=final_result_headers)
             response = {
-                "result": res.text,
+                "result": res,
                 "result_url": result_url
             }
             return Response(response, 200)
