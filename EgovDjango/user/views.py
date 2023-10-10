@@ -12,8 +12,6 @@ class UserLogin(views.APIView):
     def post(self, request):
         iin = request.data.get('iin')
         password = request.data.get('password')
-        print(iin, password)
-        print("**********************")
         s = requests.Session()
         s.get("https://idp.egov.kz/idp/sign-in")
         s.headers['Host'] = 'idp.egov.kz'
@@ -55,4 +53,8 @@ class LoginCode(views.APIView):
         res = s.get('https://my.egov.kz/person-profile/rest-v2/profile/')
         text = res.text
         text = text.replace("\\", "")
-        return Response({"info": text}, status=status.HTTP_200_OK)
+        response = {
+            "info": text,
+            "cookies": s.cookies
+        }
+        return Response(response, status=status.HTTP_200_OK)

@@ -1,3 +1,4 @@
+import json
 import time
 from urllib.parse import urlparse, parse_qs
 
@@ -54,103 +55,6 @@ class FormaView(views.APIView):
         return Response({"status": "True"}, status=200)
 
 
-class FormaCredentialsView(views.APIView):
-    def post(self, request):
-        cookies = request.data.get('cookies')
-
-        options = webdriver.FirefoxOptions()
-        browser = webdriver.Firefox(options=options)
-        browser.get("https://egov.kz/")
-        for name, value in cookies.items():
-            cookie_dict = {
-                "name": name,
-                "value": value,
-            }
-            browser.add_cookie(cookie_dict)
-        browser.refresh()
-
-        browser.get('https://egov.kz/services/P3.05/#/declaration/0/030703550889,,SELF/')
-        time.sleep(3)
-        type_object = browser.find_element(By.XPATH, '//*[@id="search"]/div/div/div/div[3]/div/div/div/div')
-        type_object.click()
-
-        time.sleep(2)
-
-        select_type = browser.find_element(By.XPATH,
-                                           '/html/body/div[4]/div[1]/div/div[1]/article/div/div/div/div/ul/li[4]')
-        select_type.click()
-
-        time.sleep(2)
-
-        adress = browser.find_element(By.XPATH, '//*[@id="search"]/div/div/div/div[5]/div/div/textarea')
-        adress.click()
-
-        time.sleep(2)
-
-        area = browser.find_element(By.XPATH,'/html/body/div[6]/div[1]/div/div[1]/article/div[1]/div/div/div/div/div/div')
-        area.click()
-
-        time.sleep(2)
-
-        areaclick = browser.find_element(By.XPATH,
-                                         '/html/body/div[7]/div[1]/div/div[1]/article/div/div/div[2]/div/ul/li[6]')
-        areaclick.click()
-
-        time.sleep(2)
-
-        region = browser.find_element(By.XPATH, '/html/body/div[6]/div[1]/div/div[1]/article/div[1]/div[2]/div/div/div/div/div')
-        region.click()
-
-        time.sleep(2)
-
-        regionclick = browser.find_element(By.XPATH, '/html/body/div[8]/div[1]/div/div[1]/article/div/div/div/div/ul/li[4]')
-        regionclick.click()
-
-        time.sleep(2)
-
-        street = browser.find_element(By.XPATH, '/html/body/div[6]/div[1]/div/div[1]/article/div[1]/div[3]/div/div/div/div/div')
-        street.click()
-
-        time.sleep(2)
-
-        streetclick = browser.find_element(By.XPATH, '/html/body/div[9]/div[1]/div/div[1]/article/div/div/div[2]/div/ul/li[8]')
-        streetclick.click()
-
-        time.sleep(2)
-
-        savebutton = browser.find_element(By.XPATH, '/html/body/div[6]/div[1]/div/footer/div[2]/button')
-        savebutton.click()
-
-        time.sleep(2)
-
-        dom = browser.find_element(By.XPATH,
-                                   '//*[@id="search"]/div/div/div/div[5]/fieldset/table/tbody/tr[1]/td/div/input')
-        dom.send_keys('12/1')
-
-        time.sleep(2)
-
-        send = browser.find_element(By.XPATH, '//*[@id="searchSignButton"]')
-        send.click()
-
-        time.sleep(4)
-
-        browser.find_element(By.XPATH, '//*[@id="sign"]/div/div/div/div[1]/div/button[1]').click()
-
-        time.sleep(6)
-
-        get_code = browser.find_element(By.XPATH, '//*[@id="sign"]/div/div/div/div[3]/div/div/div/fieldset/div[2]/button')
-        get_code.click()
-
-        time.sleep(1)
-
-        response = {
-            "current_url": browser.current_url,
-            "cookies": browser.get_cookies()
-        }
-
-        return Response(response, status=200)
-
-
 class FormaCodeView(views.APIView):
     def post(self, request):
         url = request.data.get('current_url')
@@ -204,65 +108,39 @@ class FormaCodeView(views.APIView):
         result = s.get(f"https://egov.kz/services/P3.05/rest/request-states/{request_number}")
         return Response(result.text, status=200)
 
-# class FormaCredentialsView(views.APIView):
-#     def post(self, request):
-#         cookies = request.data.get('cookies')
-#
-#         options = webdriver.FirefoxOptions()
-#         browser = webdriver.Firefox(options=options)
-#         browser.get("https://egov.kz/")
-#         for name, value in cookies.items():
-#             cookie_dict = {
-#                 "name": name,
-#                 "value": value,
-#             }
-#             browser.add_cookie(cookie_dict)
-#         browser.refresh()
-#
-#         browser.get('https://egov.kz/services/P3.05/#/declaration/0/030703550889,,SELF/')
 class PsychoNarcoView(views.APIView):
     def post(self, request):
-        cookies = request.data.get('cookies')
-        options = webdriver.FirefoxOptions()
-        options.add_argument("--headless")
-        browser = webdriver.Firefox(options=options)
-        browser.get("https://egov.kz/")
-        for name, value in cookies.items():
-            cookie_dict = {
-                "name": name,
-                "value": value,
-            }
-            browser.add_cookie(cookie_dict)
-        browser.refresh()
-        browser.get("https://egov.kz/services/P7.04/#/declaration/0//")
-        time.sleep(3)
-        browser.find_element(By.XPATH, '//*[@id="search"]/div/div/div[1]/ul/li[1]/div/label').click()
-        browser.find_element('xpath', '//*[@id="search"]/div/div/div[2]/div/button').click()
-        time.sleep(2)
-        response = {
-            "url": browser.current_url,
-            "cookies": browser.get_cookies()
-        }
-        browser.quit()
-        return Response(response, 200)
-
-
-class PsychoNarcoCodeView(views.APIView):
-    def post(self, request):
-        url = request.data.get('url')
-        iin = request.data.get('iin')
         s = requests.Session()
         cookies = request.data.get('cookies')
-        for cookie_dict in cookies:
-            s.cookies.set(
-                name=cookie_dict['name'],
-                value=cookie_dict['value'],
-                domain=cookie_dict['domain'],
-                path=cookie_dict['path']
-            )
+        for cookie_name, cookie_value in cookies.items():
+            s.cookies.set(cookie_name, cookie_value)
         s.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36'
         s.headers['Host'] = 'egov.kz'
-        s.get(url)
+        s.get("https://egov.kz/services/P7.04/#/declaration/0//")
+        res = s.get("https://egov.kz/services/P7.04/rest/current-user")
+        iin = res.json().get('uin')
+        headers = {
+            'Accept': 'application/json, text/plain, */*',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
+            'Connection': 'keep-alive',
+            'Content-Length': '47',
+            'Content-Type': 'application/json;charset=UTF-8',
+            'Host': 'egov.kz',
+            'Origin': 'https://egov.kz',
+            'Referer': 'https://egov.kz/services/P7.04/',
+            'Sec-Fetch-Dest': 'empty',
+            'Sec-Fetch-Mode': 'cors',
+            'Sec-Fetch-Site': 'same-origin',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
+            'sec-ch-ua': '"Google Chrome";v="117", "Not;A=Brand";v="8", "Chromium";v="117"',
+            'sec-ch-ua-mobile': '?0',
+            'sec-ch-ua-platform': '"Windows"'
+        }
+        print(iin)
+        data = f'{{"declarantUin":"{iin}","childIin":null}}'
+        res = s.post("https://egov.kz/services/P7.04/rest/app/get-signing-url", data=data, headers=headers)
+        url = res.json().get('signingUrl')
         parsed_url = urlparse(url)
         query_parameters = parse_qs(parsed_url.query)
         page_query_id = query_parameters.get("PageQueryID", [None])[0]
@@ -270,40 +148,107 @@ class PsychoNarcoCodeView(views.APIView):
         res = res.json()
         request_number = res.get('backUrl')
         print(request_number)
-        s.headers['Accept'] = 'application/json, text/plain, */*'
-        s.headers['Accept-Encoding'] = 'gzip, deflate'
-        s.headers['Connection'] = 'keep-alive'
-        s.headers['Content-Type'] = 'application/json'
-        s.headers['Origin'] = 'https://egov.kz'
-        s.headers['Referer'] = url
-        s.headers['Sec-Fetch-Mode'] = 'cors'
-        s.headers['Sec-Fetch-Site'] = 'same-origin'
-        res = s.post("https://egov.kz/services/signing/rest/otp/generate?uin=040705550178")
+        headers = {
+            "Accept": "application/json, text/plain, */*",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Accept-Language": "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7",
+            "Connection": "keep-alive",
+            "Content-Length": "2",
+            "Content-Type": "application/json;charset=UTF-8",
+            "Host": "egov.kz",
+            "Origin": "https://egov.kz",
+            "Referer": url,
+            "Sec-Ch-Ua": '"Google Chrome";v="117", "Not;A=Brand";v="8", "Chromium";v="117"',
+            "Sec-Ch-Ua-Mobile": "?0",
+            "Sec-Ch-Ua-Platform": '"Windows"',
+            "Sec-Fetch-Dest": "empty",
+            "Sec-Fetch-Mode": "cors",
+            "Sec-Fetch-Site": "same-origin",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
+        }
+        data = '{}'
+        s.post(f"https://egov.kz/services/signing/rest/otp/generate?uin={iin}", headers=headers, data=data)
         response = {
-            "url": request_number,
+            "page_query_url": url
         }
         return Response(response, status=200)
 
-class PsychoNarcoSendCodeView(views.APIView):
+
+class PsychoNarcoCodeView(views.APIView):
     def post(self, request):
-        url = request.data.get('url')
-        s = requests.Session()
+        page_query_url = request.data.get('page_query_url')
         cookies = request.data.get('cookies')
         code = request.data.get('code')
-        for cookie_dict in cookies:
-            s.cookies.set(
-                name=cookie_dict['name'],
-                value=cookie_dict['value'],
-                domain=cookie_dict['domain'],
-                path=cookie_dict['path']
-            )
-        parsed_url = urlparse(url)
-        query_parameters = parse_qs(parsed_url.query)
-        request_number = query_parameters.get("request-number", [None])[0]
+        s = requests.Session()
+        for cookie_name, cookie_value in cookies.items():
+            s.cookies.set(cookie_name, cookie_value)
         s.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36'
         s.headers['Host'] = 'egov.kz'
-        print(request_number)
-        res = s.post(f"https://egov.kz/services/signing/rest/app/send-otp?code={code}")
-        print(res.status_code)
-        res = s.get(f"https://egov.kz/services/P7.04/rest/request-states/{request_number}")
-        return Response(res.text, 200)
+        s.get("https://egov.kz/services/P7.04/#/declaration/0//")
+        s.get("https://egov.kz/services/P7.04/rest/current-user")
+
+        headers = {
+            "Accept": "application/json, text/plain, */*",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Accept-Language": "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7",
+            "Connection": "keep-alive",
+            "Content-Length": "67",
+            "Content-Type": "application/json",
+            "Host": "egov.kz",
+            "Origin": "https://egov.kz",
+            "Referer": page_query_url,
+            "Sec-Ch-Ua": '"Google Chrome";v="117", "Not;A=Brand";v="8", "Chromium";v="117"',
+            "Sec-Ch-Ua-Mobile": "?0",
+            "Sec-Ch-Ua-Platform": '"Windows"',
+            "Sec-Fetch-Dest": "empty",
+            "Sec-Fetch-Mode": "cors",
+            "Sec-Fetch-Site": "same-origin",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
+        }
+        parsed_url = urlparse(page_query_url)
+        query_parameters = parse_qs(parsed_url.query)
+        page_query_id = query_parameters.get("PageQueryID", [None])[0]
+        data = f'{{"uuid": "{page_query_id}","signingType":"OTP"}}'
+        res = s.post(f"https://egov.kz/services/signing/rest/app/send-otp?code={code}", data=data, headers=headers)
+        result_url = res.json().get('backUrl')
+        result_headers = {
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Accept-Language": "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7",
+            "Cache-Control": "max-age=0",
+            "Connection": "keep-alive",
+            "Host": "egov.kz",
+            "If-Modified-Since": "Fri, 16 Jun 2023 11:12:42 GMT",
+            "If-None-Match": 'W/"3574-1686913962000"',
+            "Sec-Ch-Ua": '"Google Chrome";v="117", "Not;A=Brand";v="8", "Chromium";v="117"',
+            "Sec-Ch-Ua-Mobile": "?0",
+            "Sec-Ch-Ua-Platform": '"Windows"',
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "same-origin",
+            "Sec-Fetch-User": "?1",
+            "Upgrade-Insecure-Requests": "1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
+        }
+        final_result_headers = {
+            "Accept": "application/json, text/plain, */*",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Accept-Language": "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7",
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "Host": "egov.kz",
+            "Referer": result_url,
+            "Sec-Ch-Ua": '"Google Chrome";v="117", "Not;A=Brand";v="8", "Chromium";v="117"',
+            "Sec-Ch-Ua-Mobile": "?0",
+            "Sec-Ch-Ua-Platform": '"Windows"',
+            "Sec-Fetch-Dest": "empty",
+            "Sec-Fetch-Mode": "cors",
+            "Sec-Fetch-Site": "same-origin",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
+        }
+        if res.status_code == 200:
+            s.get(result_url, headers=result_headers)
+            res = s.get(result_url, headers=final_result_headers)
+            return Response(res.text, 200)
+        else:
+            return Response({"error": "not correct code"}, 400)
