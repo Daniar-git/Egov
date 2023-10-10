@@ -249,6 +249,10 @@ class PsychoNarcoCodeView(views.APIView):
         if res.status_code == 200:
             s.get(result_url, headers=result_headers)
             res = s.get(result_url, headers=final_result_headers)
-            return Response(res.text, 200)
+            response = {
+                "result": res.text,
+                "result_url": result_url
+            }
+            return Response(response, 200)
         else:
             return Response({"error": "not correct code"}, 400)
