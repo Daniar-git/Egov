@@ -189,9 +189,10 @@ class FormaCodeView(views.APIView):
             "Sec-Fetch-Site": "same-origin",
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
         }
+        request_number = result_url.split('=')[1]
         if res.status_code == 200:
             s.get(result_url, headers=result_headers)
-            res = s.get(result_url, headers=final_result_headers)
+            res = s.get(f"https://egov.kz/services/P3.05/rest/request-states/{request_number}", headers=final_result_headers)
             response = {
                 "result": res.text,
                 "result_url": result_url
@@ -200,58 +201,33 @@ class FormaCodeView(views.APIView):
         else:
             return Response({"error": "not correct code"}, 400)
 
-class FormaCodeView(views.APIView):
+
+class FormaStatusView(views.APIView):
     def post(self, request):
-        url = request.data.get('current_url')
         cookies = request.data.get('cookies')
         s = requests.Session()
-        code = request.data.get('code')
-        for cookie_dict in cookies:
-            s.cookies.set(
-                name=cookie_dict['name'],
-                value=cookie_dict['value'],
-                domain=cookie_dict['domain'],
-                path=cookie_dict['path']
-            )
-        s.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36'
-        s.headers['Host'] = 'egov.kz'
-        s.headers['Origin'] = None
-        s.headers['Referer'] = None
-        s.get('https://egov.kz/cms/ru/services/buy_sale/pass076_mu')
-        s.get('https://egov.kz/services/P3.05/#/declaration/0//')
-        res = s.get('https://egov.kz/services/P80.01/rest/current-user')
-        print(res.text)
-        result = s.get(url)
-        print(result.status_code)
-        parsed_url = urlparse(url)
-        query_parameters = parse_qs(parsed_url.query)
-        page_query_id = query_parameters.get('PageQueryID', [])[0]
-        payload = {
-            "signingType": "OTP",
-            "uuid": page_query_id
+        result_url = request.data.get('result_url')
+        request_number = result_url.split('=')[1]
+        for cookie_name, cookie_value in cookies.items():
+            s.cookies.set(cookie_name, cookie_value)
+        final_result_headers = {
+            "Accept": "application/json, text/plain, */*",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Accept-Language": "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7",
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "Host": "egov.kz",
+            "Referer": result_url,
+            "Sec-Ch-Ua": '"Google Chrome";v="117", "Not;A=Brand";v="8", "Chromium";v="117"',
+            "Sec-Ch-Ua-Mobile": "?0",
+            "Sec-Ch-Ua-Platform": '"Windows"',
+            "Sec-Fetch-Dest": "empty",
+            "Sec-Fetch-Mode": "cors",
+            "Sec-Fetch-Site": "same-origin",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
         }
-        s.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36'
-        s.headers['Accept'] = 'application/json, text/plain, */*'
-        s.headers['Accept-Encoding'] = 'gzip, deflate'
-        s.headers['Connection'] = 'keep-alive'
-        s.headers['Content-Type'] = 'application/json'
-        s.headers['Host'] = 'egov.kz'
-        s.headers['Origin'] = 'https://egov.kz'
-        s.headers['Referer'] = f'https://egov.kz/services/signing/?PageQueryID={page_query_id}'
-        s.headers['Sec-Fetch-Mode'] = 'cors'
-        s.headers['Sec-Fetch-Site'] = 'same-origin'
-        # s.headers["Target_URL"] = f"https://egov.kz/services/signing/rest/app/send-otp?code={code}"
-        proxy_url = "http://localhost:8080"
-        s.headers["Target_URL"] = f"https://egov.kz/services/P80.01/rest/current-user"
-        res = s.get(proxy_url)
-        print(res.text)
-        result = s.get(f"https://egov.kz/services/signing/rest/app/v4/verification-types?uin=040705550178&PageQueryID={page_query_id}")
-        result = result.json()
-        request_number = result.get('backUrl')
-        result_code = s.post(proxy_url, data=payload)
-        print(result_code)
-        result = s.get(f"https://egov.kz/services/P3.05/rest/request-states/{request_number}")
-        return Response(result.text, status=200)
+        res = s.get(f"https://egov.kz/services/P3.05/rest/request-states/{request_number}", headers=final_result_headers)
+        return Response(res.json(), 200)
 
 class PsychoNarcoView(views.APIView):
     def post(self, request):

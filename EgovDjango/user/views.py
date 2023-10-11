@@ -29,7 +29,7 @@ class UserLogin(views.APIView):
 
 class LoginCode(views.APIView):
     def post(self, request):
-        code = int(request.data.get('code'))
+        code = request.data.get('code')
         cookies = request.data.get('cookies')
         iin = request.data.get('iin')
         phone = request.data.get('phone')
