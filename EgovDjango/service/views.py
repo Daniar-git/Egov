@@ -87,10 +87,6 @@ class FormaView(views.APIView):
         }
         data = '{}'
         s.post(f"https://egov.kz/services/signing/rest/otp/generate?uin={iin}", headers=headers, data=data)
-        response = {
-            "page_query_url": url
-        }
-        print('response: ', response)
         headers = {
             "Accept": "application/json, text/plain, */*",
             "Accept-Encoding": "gzip, deflate, br",
@@ -112,8 +108,9 @@ class FormaView(views.APIView):
         }
 
         data = f'{{"uuid": "{page_query_id}","signingType": "OTP"}}'
-
-        s.post(f"https://egov.kz/services/signing/rest/app/send-otp?code={code}", headers=headers, data=data)
+        response = {
+            "page_query_url": url
+        }
         return Response(response, status=200)
 
 
@@ -194,7 +191,7 @@ class FormaCodeView(views.APIView):
             s.get(result_url, headers=result_headers)
             res = s.get(f"https://egov.kz/services/P3.05/rest/request-states/{request_number}", headers=final_result_headers)
             response = {
-                "result": res.text,
+                "result": res.json(),
                 "result_url": result_url
             }
             return Response(response, 200)
