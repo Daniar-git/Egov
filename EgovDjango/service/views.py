@@ -191,7 +191,7 @@ class FormaCodeView(views.APIView):
             s.get(result_url, headers=result_headers)
             res = s.get(f"https://egov.kz/services/P3.05/rest/request-states/{request_number}", headers=final_result_headers)
             response = {
-                "result": res.text,
+                "result": res,
                 "result_url": result_url
             }
             return Response(response, 200)
