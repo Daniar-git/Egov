@@ -191,7 +191,7 @@ class FormaCodeView(views.APIView):
             s.get(result_url, headers=result_headers)
             res = s.get(f"https://egov.kz/services/P3.05/rest/request-states/{request_number}", headers=final_result_headers)
             response = {
-                "result": res.json(),
+                "result": res.text,
                 "result_url": result_url
             }
             return Response(response, 200)
@@ -224,7 +224,7 @@ class FormaStatusView(views.APIView):
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
         }
         res = s.get(f"https://egov.kz/services/P3.05/rest/request-states/{request_number}", headers=final_result_headers)
-        return Response(res.json(), 200)
+        return Response(res.text, 200)
 
 class PsychoNarcoView(views.APIView):
     def post(self, request):
